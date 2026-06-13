@@ -4,4 +4,4 @@ __pycache__/
 .venv/
 venv/
 *.pyc
-node_modules/
+node_modules/dist
