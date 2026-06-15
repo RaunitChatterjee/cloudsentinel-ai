@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 
 class Finding(BaseModel):
@@ -8,3 +9,4 @@ class Finding(BaseModel):
     finding: str
     description: str
     recommendation: str
+    ai_suggestions: List[str] = []

@@ -9,13 +9,14 @@ from app.services.report_service import (
     get_timestamp
 )
 from app.services.dashboard_service import calculate_dashboard
+from app.services.ai_service import generate_ai_suggestions
+
 router = APIRouter()
+
 
 @router.get("/aws-test")
 def aws_test():
-
     iam = get_iam_client()
-
     users = iam.list_users()
 
     return {
@@ -23,22 +24,31 @@ def aws_test():
         "iam_users": len(users["Users"])
     }
 
+
 @router.get("/iam/mfa-check")
 def mfa_check():
-
     findings = scan_users_without_mfa()
-
     return findings
+
+
 @router.get("/s3/public-check")
 def s3_public_check():
-
     findings = scan_public_buckets()
-
     return findings
-@router.get("/scan", response_model=ScanResponse)
-def full_scan():
 
+
+# GET -> Used when dashboard loads
+# POST -> Used when user clicks "Run New Scan"
+@router.get("/scan", response_model=ScanResponse)
+@router.post("/scan", response_model=ScanResponse)
+def full_scan():
     findings = run_full_scan()
+
+    # Add AI suggestions to every finding
+    for finding in findings:
+        finding["ai_suggestions"] = (
+            generate_ai_suggestions(finding)
+        )
 
     critical = sum(
         1 for f in findings
@@ -74,6 +84,19 @@ def full_scan():
         "findings": findings
     }
 
+
+@router.get("/dashboard")
+def dashboard():
+    findings = run_full_scan()
+
+    for finding in findings:
+        finding["ai_suggestions"] = (
+            generate_ai_suggestions(finding)
+        )
+
+    return calculate_dashboard(findings)
+
+
 def get_ec2_client():
     import boto3
     import os
@@ -87,9 +110,3 @@ def get_ec2_client():
         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
         region_name=os.getenv("AWS_REGION")
     )
-@router.get("/dashboard")
-def dashboard():
-
-    findings = run_full_scan()
-
-    return calculate_dashboard(findings)

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def generate_scan_id():
@@ -7,4 +7,4 @@ def generate_scan_id():
 
 
 def get_timestamp():
-    return datetime.utcnow().isoformat()
+    return datetime.now(timezone.utc).isoformat()
