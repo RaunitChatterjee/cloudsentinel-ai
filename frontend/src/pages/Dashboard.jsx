@@ -11,6 +11,7 @@ import Toast from '../components/common/Toast';
 
 import { dashboardService } from '../services/dashboardService';
 import { scanService } from '../services/scanService';
+import { exportFindingsToPdf } from '../utils/exportPdf';
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
@@ -21,8 +22,10 @@ export default function Dashboard() {
   const [toast, setToast] = useState(null);
   const [scanning, setScanning] = useState(false);
 
-  const [selectedFinding, setSelectedFinding] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFinding, setSelectedFinding] =
+    useState(null);
+  const [isModalOpen, setIsModalOpen] =
+    useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -108,9 +111,11 @@ export default function Dashboard() {
       }
     );
 
-    const url = URL.createObjectURL(blob);
+    const url =
+      URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
+    const a =
+      document.createElement('a');
 
     a.href = url;
     a.download = `cloudsentinel-scan-${scan.scan_id}.json`;
@@ -122,7 +127,34 @@ export default function Dashboard() {
     URL.revokeObjectURL(url);
 
     setToast({
-      message: 'Report exported successfully.',
+      message:
+        'Report exported successfully.',
+      type: 'success',
+    });
+  }
+
+  function handlePdfExport() {
+    if (!scan?.findings?.length) {
+      setToast({
+        message:
+          'No scan data available.',
+        type: 'error',
+      });
+
+      return;
+    }
+
+    exportFindingsToPdf(
+      scan.findings,
+      {
+        scan_id: scan.scan_id,
+        timestamp: scan.timestamp,
+      }
+    );
+
+    setToast({
+      message:
+        'PDF report exported successfully.',
       type: 'success',
     });
   }
@@ -132,41 +164,69 @@ export default function Dashboard() {
     setIsModalOpen(true);
   }
 
-  const statsData = dashboard || scan || {};
+  const statsData =
+    dashboard || scan || {};
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-white">
             Cloud Security Dashboard
           </h1>
 
-          <p className="text-[11px] text-gray-500 mt-1 flex items-center gap-1.5">
-            <span className="font-mono text-gray-600">
-              {scan?.scan_id?.slice(0, 8) || '--------'}
-            </span>
-
-            <span className="w-1 h-1 rounded-full bg-gray-700" />
-
-            Last scan:{' '}
-            {scan?.timestamp
-              ? new Date(scan.timestamp).toLocaleString(
-                  'en-IN',
-                  {
-                    timeZone: 'Asia/Kolkata',
-                  }
-                )
-              : '—'}
-          </p>
+          {scan?.timestamp && (
+            <p className="text-gray-500 text-sm mt-2">
+              Last Scan:{' '}
+              {new Date(
+                scan.timestamp
+              ).toLocaleString(
+                'en-IN',
+                {
+                  timeZone:
+                    'Asia/Kolkata',
+                }
+              )}
+            </p>
+          )}
         </div>
 
-        <div className="flex items-center gap-2.5">
-          {/* Export Button */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Export PDF */}
           <button
-            onClick={handleExport}
-            disabled={loading || scanning}
+            onClick={
+              handlePdfExport
+            }
+            disabled={
+              loading || scanning
+            }
+            className="
+              group inline-flex items-center gap-2
+              px-4 py-2 rounded-lg
+              border border-cyan-500/30
+              bg-cyan-500/10
+              hover:bg-cyan-500/20
+              text-cyan-300
+              text-sm font-medium
+              transition-all duration-150
+              disabled:opacity-40
+              disabled:cursor-not-allowed
+              active:scale-[0.97]
+            "
+          >
+            <span>📄</span>
+            Export PDF
+          </button>
+
+          {/* Export JSON */}
+          <button
+            onClick={
+              handleExport
+            }
+            disabled={
+              loading || scanning
+            }
             className="
               group inline-flex items-center gap-2
               px-4 py-2 rounded-lg
@@ -181,14 +241,18 @@ export default function Dashboard() {
               active:scale-[0.97]
             "
           >
-            <span className="text-base">⬇</span>
+            <span>⬇</span>
             Export Report
           </button>
 
-          {/* Run Scan Button */}
+          {/* Run Scan */}
           <button
-            onClick={handleRunScan}
-            disabled={scanning || loading}
+            onClick={
+              handleRunScan
+            }
+            disabled={
+              scanning || loading
+            }
             className="
               group relative
               inline-flex items-center gap-2
@@ -205,7 +269,10 @@ export default function Dashboard() {
             {scanning ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Scanning...</span>
+
+                <span>
+                  Scanning...
+                </span>
 
                 <span className="absolute inset-0 rounded-lg animate-ping bg-cyan-500/20 pointer-events-none" />
               </>
@@ -231,10 +298,14 @@ export default function Dashboard() {
       {/* Stats */}
       <DashboardStats
         data={{
-          critical: statsData.critical ?? 0,
-          high: statsData.high ?? 0,
-          medium: statsData.medium ?? 0,
-          low: statsData.low ?? 0,
+          critical:
+            statsData.critical ?? 0,
+          high:
+            statsData.high ?? 0,
+          medium:
+            statsData.medium ?? 0,
+          low:
+            statsData.low ?? 0,
         }}
         loading={loading}
       />
@@ -243,20 +314,28 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <SeverityPieChart
           data={{
-            critical: statsData.critical ?? 0,
-            high: statsData.high ?? 0,
-            medium: statsData.medium ?? 0,
-            low: statsData.low ?? 0,
+            critical:
+              statsData.critical ?? 0,
+            high:
+              statsData.high ?? 0,
+            medium:
+              statsData.medium ?? 0,
+            low:
+              statsData.low ?? 0,
           }}
           loading={loading}
         />
 
         <SeverityBarChart
           data={{
-            critical: statsData.critical ?? 0,
-            high: statsData.high ?? 0,
-            medium: statsData.medium ?? 0,
-            low: statsData.low ?? 0,
+            critical:
+              statsData.critical ?? 0,
+            high:
+              statsData.high ?? 0,
+            medium:
+              statsData.medium ?? 0,
+            low:
+              statsData.low ?? 0,
           }}
           loading={loading}
         />
@@ -271,28 +350,44 @@ export default function Dashboard() {
       <RecentFindings
         data={scan}
         loading={loading}
-        onFindingClick={handleFindingClick}
+        onFindingClick={
+          handleFindingClick
+        }
       />
 
       {/* Scan History */}
-      <ScanHistory history={scanHistory} />
+      <ScanHistory
+        history={scanHistory}
+      />
 
       {/* Modal */}
       <FindingModal
-        finding={selectedFinding}
-        isOpen={isModalOpen}
+        finding={
+          selectedFinding
+        }
+        isOpen={
+          isModalOpen
+        }
         onClose={() => {
           setIsModalOpen(false);
-          setSelectedFinding(null);
+          setSelectedFinding(
+            null
+          );
         }}
       />
 
       {/* Toast */}
       {toast && (
         <Toast
-          message={toast.message}
-          type={toast.type}
-          onDismiss={() => setToast(null)}
+          message={
+            toast.message
+          }
+          type={
+            toast.type
+          }
+          onDismiss={() =>
+            setToast(null)
+          }
         />
       )}
     </div>
