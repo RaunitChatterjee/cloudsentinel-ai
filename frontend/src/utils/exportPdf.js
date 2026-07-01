@@ -95,8 +95,8 @@ export function exportFindingsToPdf(findings, scanMeta = {}) {
 
   autoTable(doc, {
     startY: y + 5,
-    head: [['Severity', 'Finding', 'Resource', 'Risk']],
-    body: findings.map((f) => [f.severity, f.finding, f.resource, `${f.risk_score}/10`]),
+    head: [['Severity', 'Finding', 'Resource', 'Risk', 'Recommendation']],
+    body: findings.map((f) => [f.severity, f.finding, f.resource, `${f.risk_score}/10`, f.recommendation || '']),
     styles: { fontSize: 8.5, cellPadding: { top: 5, bottom: 5, left: 6, right: 4 }, valign: 'middle' },
     headStyles: { fillColor: [15, 23, 42], textColor: [148, 163, 184], fontStyle: 'bold', fontSize: 7.5 },
     alternateRowStyles: { fillColor: [250, 250, 250] },
@@ -105,6 +105,7 @@ export function exportFindingsToPdf(findings, scanMeta = {}) {
       1: { cellWidth: 'auto' },
       2: { cellWidth: 38, font: 'courier', fontSize: 7.5, textColor: [71, 85, 105] },
       3: { cellWidth: 20, halign: 'right' },
+      4: { cellWidth: 'auto', fontSize: 7.5, textColor: [71, 85, 105] },
     },
     didParseCell: (data) => {
       if (data.section === 'body' && data.column.index === 0) {
@@ -131,6 +132,87 @@ export function exportFindingsToPdf(findings, scanMeta = {}) {
       }
     },
   });
+
+  // ── AI Recommendations ──
+  const findingsWithAI = findings.filter(f => f.ai_suggestions?.length > 0);
+  if (findingsWithAI.length > 0) {
+    let aiY = doc.lastAutoTable.finalY + 14;
+
+    // Section header
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 116, 139);
+    doc.text('AI RECOMMENDATIONS', 14, aiY);
+
+    // Violet accent line under the section header
+    doc.setFillColor(139, 92, 246);
+    doc.rect(14, aiY + 2, 38, 0.8, 'F');
+
+    aiY += 10;
+
+    findingsWithAI.forEach((finding) => {
+      const recs = finding.ai_suggestions;
+
+      // Check if we need a new page
+      const estimatedHeight = 10 + recs.length * 12 + 8;
+      if (aiY + estimatedHeight > doc.internal.pageSize.height - 24) {
+        doc.addPage();
+        aiY = 20;
+      }
+
+      // Finding title bar
+      const sev = finding.severity;
+      const c = SEVERITY_COLORS[sev] || SEVERITY_COLORS.LOW;
+      doc.setFillColor(...c.bg);
+      doc.roundedRect(14, aiY, pageWidth - 28, 10, 1.5, 1.5, 'F');
+      doc.setFillColor(...c.bar);
+      doc.rect(14, aiY, 1.2, 10, 'F');
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...c.text);
+      doc.text(sev, 20, aiY + 6.5);
+
+      doc.setTextColor(30, 41, 59);
+      doc.text(finding.finding, 46, aiY + 6.5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      const resourceLabel = `${finding.resource}`;
+      doc.text(resourceLabel, pageWidth - 14 - doc.getTextWidth(resourceLabel), aiY + 6.5);
+
+      aiY += 13;
+
+      // Recommendation steps
+      recs.forEach((rec, idx) => {
+        // New page guard per step
+        if (aiY + 14 > doc.internal.pageSize.height - 24) {
+          doc.addPage();
+          aiY = 20;
+        }
+
+        // Step number circle (drawn manually)
+        doc.setFillColor(237, 233, 254);
+        doc.circle(20, aiY + 3.5, 3.5, 'F');
+        doc.setFontSize(6.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(109, 40, 217);
+        doc.text(String(idx + 1), 20, aiY + 4.5, { align: 'center' });
+
+        // Step text — wrap long lines
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(51, 65, 85);
+        const maxWidth = pageWidth - 40;
+        const lines = doc.splitTextToSize(rec, maxWidth);
+        doc.text(lines, 28, aiY + 4.5);
+        aiY += lines.length * 5.5 + 5;
+      });
+
+      aiY += 5;
+    });
+  }
 
   // ── Footer ──
   const pageCount = doc.internal.getNumberOfPages();
