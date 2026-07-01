@@ -8,7 +8,7 @@ load_dotenv()
 API_KEY = os.getenv(
     "CLOUDSENTINEL_API_KEY"
 )
-print("DEBUG API KEY:", API_KEY)
+print("HEADER KEY:", key)
 
 api_key_header = APIKeyHeader(
     name="X-API-Key",
