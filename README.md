@@ -11,6 +11,8 @@ Scan your AWS resources, surface misconfigurations, get AI-generated remediation
 ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white)
 ![AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazonaws&logoColor=white)
 
+### 🔗 [Live Demo](https://cloudsentinel-ai.vercel.app/)
+
 </div>
 
 ---
@@ -20,6 +22,8 @@ Scan your AWS resources, surface misconfigurations, get AI-generated remediation
 Misconfigurations remain one of the leading causes of cloud data breaches. **CloudSentinel AI** helps catch these issues before they become incidents by automatically scanning your AWS environment and presenting the results in a clear, actionable dashboard.
 
 The application inspects key AWS services, assigns severity levels and risk scores to each finding, and uses AI to suggest practical remediation steps — so you know not just *what's* wrong, but *how* to fix it.
+
+🔗 **Try it live:** [cloudsentinel-ai.vercel.app](https://cloudsentinel-ai.vercel.app/)
 
 ---
 
