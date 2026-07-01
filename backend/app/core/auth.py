@@ -5,10 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv(
-    "CLOUDSENTINEL_API_KEY"
-)
-print("HEADER KEY:", key)
+API_KEY = os.getenv("CLOUDSENTINEL_API_KEY")
 
 api_key_header = APIKeyHeader(
     name="X-API-Key",
