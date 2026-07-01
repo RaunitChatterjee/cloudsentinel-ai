@@ -12,6 +12,11 @@ Scan your AWS resources, surface misconfigurations, get AI-generated remediation
 ![AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazonaws&logoColor=white)
 
 ### 🔗 [Live Demo](https://cloudsentinel-ai.vercel.app/)
+## 🎥 Demo Video
+
+Watch the complete demo here:
+
+https://youtu.be/EqJegddhr4g
 
 </div>
 
